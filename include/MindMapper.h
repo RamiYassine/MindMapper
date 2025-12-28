@@ -3,6 +3,8 @@
 
 #include "Stack.h"
 
+namespace Mapper
+{
 class Idea final
 {
 public:
@@ -41,5 +43,6 @@ private:
     void serialize(const std::string& filename);
     static MindMapper deserialize(const std::string& filename);
 };
+} // namespace Mapper
 
 #endif // MIND_H

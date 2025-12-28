@@ -1,5 +1,7 @@
 #include "../../include/utils/String.h"
 
+namespace Mapper
+{
 String::String()
 {
     m_String = new Array<char>();
@@ -53,3 +55,5 @@ Array<char>* String::getString() const
 {
     return m_String;
 }
+
+} // namespace Mapper

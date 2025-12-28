@@ -1,8 +1,8 @@
 #include <iostream>
 #include "../include/Stack.h"
 
-using namespace std;
-
+namespace Mapper
+{
 Stack::Stack() : m_top(nullptr), m_Title(1, '-'), m_Done(false)
 {
 }
@@ -71,7 +71,7 @@ void Stack::push(const String &t)
 {
     Thought *tmp = new Thought(t);
     if (tmp == NULL) {
-        cout << "Stack is full" << endl;
+        std::cout << "Stack is full" << std::endl;
     } else {
         tmp->next = m_top;
         m_top = tmp;
@@ -81,7 +81,7 @@ void Stack::push(const String &t)
 void Stack::pop()
 {
     if (m_top == nullptr) {
-        cout << "Stack is empty!" << endl;
+        std::cout << "Stack is empty!" << std::endl;
     } else {
         Thought *tmp = m_top;
         m_top = m_top->next;
@@ -120,5 +120,7 @@ void Stack::display(Thought* p)
         return;
     }
     display(p->next);
-    cout << "- " << p->phrase.c_str() << endl;
+    std::cout << "- " << p->phrase.c_str() << std::endl;
 }
+
+} // namespace Mapper

@@ -1,8 +1,10 @@
-#ifndef IDEA_H
-#define IDEA_H
+#ifndef STACK_H
+#define STACK_H
 
 #include "utils/String.h"
 
+namespace Mapper
+{
 class Thought final
 {
 public:
@@ -37,5 +39,6 @@ private:
     String m_Title;
     bool m_Done;
 };
+} // namespace Mapper
 
-#endif // IDEA_H
+#endif // STACK_H
