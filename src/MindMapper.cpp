@@ -1,8 +1,13 @@
 #include <fstream>
 #include <filesystem>
 #include <limits>
+#include <nlohmann/json.hpp>
 #include "../include/MindMapper.h"
 
+using json = nlohmann::json;
+
+namespace Mapper
+{
 MindMapper::MindMapper() : m_first(nullptr), m_last(nullptr), m_Length(0)
 {
 }
@@ -36,7 +41,7 @@ void MindMapper::run()
     do {
         mainMenu();
         std::cout << "Enter your choice: ";
-        cin >> choice;
+        std::cin >> choice;
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
         switch (choice)
         {
@@ -119,8 +124,8 @@ void MindMapper::formIdea()
             thoughts.pop();
             break;
         case 3:
-            cout << endl;
-            cout << "Trail of thoughts: " << endl;
+            std::cout << std::endl;
+            std::cout << "Trail of thoughts: " << std::endl;
             thoughts.display(thoughts.getTop());
             break;
         case 4:
@@ -195,7 +200,7 @@ void MindMapper::editIdea()
         char ch;
         thinkMenu();
         std::cout << "Enter your choice: ";
-        cin >> choice;
+        std::cin >> choice;
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
         
         switch (choice)
@@ -204,7 +209,7 @@ void MindMapper::editIdea()
             std::cout << "Enter a new thought - end it with '!'" << std::endl;
             ch = 0;
             do {
-                cin >> noskipws >> ch;
+                std::cin >> std::noskipws >> ch;
                 if (ch != '\n')
                     thought.append(ch);
             } while (ch != '!');
@@ -216,8 +221,8 @@ void MindMapper::editIdea()
             p->thoughts.pop();
             break;
         case 3:
-            cout << endl;
-            cout << "Trail of thoughts: " << endl;
+            std::cout << std::endl;
+            std::cout << "Trail of thoughts: " << std::endl;
             p->thoughts.display(p->thoughts.getTop());
             break;
         case 4:
@@ -233,7 +238,7 @@ int MindMapper::selectIdea()
     int sel;
     traverseIdeas();
     std::cout << "Choose an idea: ";
-    cin >> sel;
+    std::cin >> sel;
     sel--;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
     if (sel < 0 || sel >= m_Length)
@@ -259,7 +264,7 @@ void MindMapper::markIdeaDone()
     int choice;
     std::cout << "1. Mark Idea done" << std::endl;
     std::cout << "2. Unmark Idea as done" << std::endl;
-    cin >> choice;
+    std::cin >> choice;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
 
     if (choice < 1 || choice > 2) {
@@ -361,3 +366,5 @@ void MindMapper::markIdeaDone()
 //         p = p->next;
 //     }
 // }
+    
+} // namespace Mapper

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "Array.h"
 
+namespace Mapper
+{
 class String final
 {
 public:
@@ -21,5 +23,6 @@ public:
 private:
     Array<char>* m_String;
 };
+} // namespace Mapper
 
 #endif // STRING_H

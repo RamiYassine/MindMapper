@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <iostream>
 
-using namespace std;
-
+namespace Mapper
+{
 template <typename T>
 class Array final
 {
@@ -124,9 +124,9 @@ template <typename T>
 void Array<T>::display()
 {
     for (size_t i = 0; i < m_Length; i++) {
-        cout << m_Data[i];
+        std::cout << m_Data[i];
     }
-    cout << endl;
+    std::cout << endl;
 }
 
 template <typename T>
@@ -140,5 +140,6 @@ T* Array<T>::data() const
 {
     return m_Data;
 }
+} // namespace Mapper
 
 #endif // ARRAY_H
