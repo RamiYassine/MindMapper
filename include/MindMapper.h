@@ -1,10 +1,10 @@
-#ifndef MIND_H
-#define MIND_H
+#ifndef MIND_MAPPER_H
+#define MIND_MAPPER_H
 
 #include "Stack.h"
 
-namespace Mapper
-{
+namespace Mapper {
+
 class Idea final
 {
 public:
@@ -24,17 +24,19 @@ public:
     ~MindMapper();
 
     void run();
-    void traverseIdeas();
+    void traverseIdeas() const;
+    const Idea* getFirst() const;
+    int getIdeaCount() const;
     // void traverseThoughts();
 private:
     Idea *m_first;
     Idea *m_last;
     int m_Length;
     
-    void mainMenu();
-    void thinkMenu();
+    void mainMenu() const;
+    void thinkMenu() const;
     void formIdea();
-    void addIdea(const Stack &t);
+    void addIdea(const Stack& stk);
     void removeIdea();
     void editIdea();
     void markIdeaDone();
@@ -45,4 +47,4 @@ private:
 };
 } // namespace Mapper
 
-#endif // MIND_H
+#endif // MIND_MAPPER_H

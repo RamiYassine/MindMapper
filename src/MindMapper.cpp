@@ -3,11 +3,12 @@
 #include <limits>
 #include <nlohmann/json.hpp>
 #include "../include/MindMapper.h"
+#include "../include/utils/Serialization.h"
 
 using json = nlohmann::json;
 
-namespace Mapper
-{
+namespace Mapper {
+
 MindMapper::MindMapper() : m_first(nullptr), m_last(nullptr), m_Length(0)
 {
 }
@@ -22,7 +23,20 @@ MindMapper::~MindMapper()
     m_first = m_last = nullptr;
 }
 
-void MindMapper::mainMenu()
+// Return pointer to first Idea
+const Idea* MindMapper::getFirst() const
+{
+    return m_first;
+}
+
+// Return number of ideas
+int MindMapper::getIdeaCount() const
+{
+    return m_Length;
+}
+
+// Shows the main menu options
+void MindMapper::mainMenu() const
 {
     std::cout << "\n---------- Mind Mapper ----------\n" << std::endl;
     std::cout << "1. Form a new Idea" << std::endl;
@@ -35,6 +49,7 @@ void MindMapper::mainMenu()
     std::cout << "-----------------------------------" << std::endl;
 }
 
+// The main entry point to the application
 void MindMapper::run()
 {
     int choice;
@@ -61,7 +76,7 @@ void MindMapper::run()
             markIdeaDone();
             break;
         case 6:
-            // loadOrSave();
+            loadOrSave();
             break;
         case 7:
             std::cout << "Exiting program." << std::endl;
@@ -72,7 +87,8 @@ void MindMapper::run()
     } while (choice != 7);
 }
 
-void MindMapper::thinkMenu()
+// Shows menu for forming ideas
+void MindMapper::thinkMenu() const
 {
     std::cout << std::endl;
     std::cout << "-------------Form Idea-------------" << std::endl;
@@ -83,18 +99,25 @@ void MindMapper::thinkMenu()
     std::cout << "-----------------------------------" << std::endl;
 }
 
+// Forms a new Idea
 void MindMapper::formIdea()
 {
     String title;
     char ch;
-    
-    std::cout << "Enter a title for this new Idea: ";
-    do {
-        std::cin >> std::noskipws >> ch;
-        if (ch != '\n')
-            title.append(ch);
-    } while (ch != '!');
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
+
+    std::cout << "Enter title for new Idea: ";
+    // Read one line at a time (Enter ends input)
+    while (true) {
+        if (!std::cin.get(ch)) break; // stop on EOF or error
+        if (ch == '\n') break;        // Enter pressed → end input
+        title.append(ch);
+    }
+    // do {
+    //     std::cin >> std::noskipws >> ch;
+    //     if (ch != '\n')
+    //         title.append(ch);
+    // } while (ch != '\n');
+    // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
     
     Stack thoughts(title);
     int choice;
@@ -109,14 +132,19 @@ void MindMapper::formIdea()
         switch (choice)
         {
         case 1:
-            std::cout << "Enter a new thought - end it with '!':" << std::endl;
+            std::cout << "Enter a new thought: ";
             ch = 0;
-            do {
-                std::cin >> std::noskipws >> ch;
-                if (ch != '\n')
-                    thought.append(ch);
-            } while (ch != '!');
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
+            while (true) {
+                if (!std::cin.get(ch)) break; // stop on EOF or error
+                if (ch == '\n') break;        // Enter pressed → end input
+                thought.append(ch);
+            }
+            // do {
+            //     std::cin >> std::noskipws >> ch;
+            //     if (ch != '\n')
+            //         thought.append(ch);
+            // } while (ch != '\n');
+            // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
             thoughts.push(thought);
             break;
         case 2:
@@ -138,9 +166,9 @@ void MindMapper::formIdea()
     addIdea(thoughts);
 }
 
-void MindMapper::addIdea(const Stack &t)
+void MindMapper::addIdea(const Stack& stk)
 {
-    Idea *tmp = new Idea(t);
+    Idea *tmp = new Idea(stk);
     if (!tmp) {
         std::cout << "List is full!" << std::endl;
         return;
@@ -206,15 +234,20 @@ void MindMapper::editIdea()
         switch (choice)
         {
         case 1:
-            std::cout << "Enter a new thought - end it with '!'" << std::endl;
+            std::cout << "Enter a new thought: ";
             ch = 0;
-            do {
-                std::cin >> std::noskipws >> ch;
-                if (ch != '\n')
-                    thought.append(ch);
-            } while (ch != '!');
+            while (true) {
+                if (!std::cin.get(ch)) break; // stop on EOF or error
+                if (ch == '\n') break;        // Enter pressed → end input
+                thought.append(ch);
+            }
+            // do {
+            //     std::cin >> std::noskipws >> ch;
+            //     if (ch != '\n')
+            //         thought.append(ch);
+            // } while (ch != '\n');
             p->thoughts.push(thought);
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
+            // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
             break;
         case 2:
             std::cout << "Removed last thought!" << std::endl;
@@ -239,14 +272,14 @@ int MindMapper::selectIdea()
     traverseIdeas();
     std::cout << "Choose an idea: ";
     std::cin >> sel;
-    sel--;
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
+    sel--;
     if (sel < 0 || sel >= m_Length)
         return -1;
     return sel;
 }
 
-void MindMapper::traverseIdeas()
+void MindMapper::traverseIdeas() const
 {
     Idea *p = m_first;
     int i = 1;
@@ -294,53 +327,56 @@ void MindMapper::markIdeaDone()
     }
 }
 
-// void MindMapper::loadOrSave()
-// {
-    // int choice;
-    // std::cout << "1. Save current session." << std::endl;
-    // std::cout << "2. Load previous session." << std::endl;
-    // std::cout << "3. Go back to previous menu." << std::endl;
-    // std::cout << "Enter: ";
-    // std::cin >> choice;
-    // if (choice == 1) {
-    //     std::string session;
-    //     std::cout << "Enter a name for your session (no spaces): ";
-    //     std::cin >> session;
-    //     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
-    //     serialize(session);
-    // } else if (choice == 2) {
-    //     std::string session;
-    //     std::cout << "Listing saved sessions:" << std::endl;
-    //     try {
-    //         for (const auto& entry : filesystem::directory_iterator()) {
-    //             if (filesystem::is_regular_file(entry.status())) {
-    //                 if (entry.path().extension() == ".bin") {
-    //                     std::cout << entry.path().filename().string() << std::endl;
-    //                 }
-    //             }
-    //         }
-    //     } catch (const filesystem::filesystem_error& e) {
-    //         std::cerr << "Error accessing directory: " << e.what() << std::endl;
-    //     }
-    //     std::cout << "Please enter the name of the session to load: ";
-    //     std::cin >> session;
+void MindMapper::loadOrSave()
+{
+    int choice;
+    std::cout << "1. Save current session." << std::endl;
+    std::cout << "2. Load previous session." << std::endl;
+    std::cout << "3. Go back to previous menu." << std::endl;
+    std::cout << "Enter: ";
+    std::cin >> choice;
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
+    if (choice == 1) {
+        std::string session;
+        std::cout << "Enter a name for your session (no spaces): ";
+        std::cin >> session;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
+        serialize(session);
+    } else if (choice == 2) {
+        // std::string session;
+        // std::cout << "Listing saved sessions:" << std::endl;
+        // try {
+        //     for (const auto& entry : std::filesystem::directory_iterator()) {
+        //         if (std::filesystem::is_regular_file(entry.status())) {
+        //             if (entry.path().extension() == ".bin") {
+        //                 std::cout << entry.path().filename().string() << std::endl;
+        //             }
+        //         }
+        //     }
+        // } catch (const std::filesystem::filesystem_error& e) {
+        //     std::cerr << "Error accessing directory: " << e.what() << std::endl;
+        // }
+        // std::cout << "Please enter the name of the session to load: ";
+        // std::cin >> session;
 
-    //     *this = MindMapper::deserialize(session);
-    // } else {
-    //     return;
-    // }
-// }
+        // *this = MindMapper::deserialize(session);
+    } else {
+        return;
+    }
+}
 
-// void MindMapper::serialize(const std::string& filename)
-// {
-    // ofstream file(filename, ios::binary);
-    // if (!file.is_open()) {
-    //     std::cerr << "Error: Failed to open file for writing." << std::endl;
-    //     return;
-    // }
-    // file.close();
-    // std::cout << "Saved!" << std::endl;
-// }
+void MindMapper::serialize(const std::string& filename)
+{
+    json j = *this;
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error: Failed to open file for writing." << std::endl;
+        return;
+    }
+    file << j.dump(4);
+    file.close();
+    std::cout << "Saved!" << std::endl;
+}
 
 // MindMapper MindMapper::deserialize(const std::string& filename)
 // {

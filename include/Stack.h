@@ -3,8 +3,8 @@
 
 #include "utils/String.h"
 
-namespace Mapper
-{
+namespace Mapper {
+
 class Thought final
 {
 public:
@@ -22,8 +22,8 @@ class Stack final
 public:
     Stack();
     Stack(const String& title);
-    Stack(const Stack &stk);
-    Stack& operator=(const Stack& stk);
+    Stack(const Stack& other);
+    Stack& operator=(const Stack& other);
     ~Stack();
 
     void push(const String &t);
@@ -33,7 +33,7 @@ public:
     void setTitle(const String& title);
     bool isDone() const;
     void setStatus(const bool stat);
-    void display(Thought* p);
+    void display(const Thought* p) const;
 private:
     Thought *m_top;
     String m_Title;
