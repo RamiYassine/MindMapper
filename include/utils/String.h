@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include "Array.h"
 
-namespace Mapper
-{
+namespace Mapper {
+
 class String final
 {
 public:
     String();
     String(size_t sz, char ch);
-    String(Array<char>& str);
+    String(const Array<char>& arr);
     String(const String& other);
     String& operator=(const String& other);
     ~String();
@@ -23,6 +23,6 @@ public:
 private:
     Array<char>* m_String;
 };
-} // namespace Mapper
 
+} // namespace Mapper
 #endif // STRING_H
