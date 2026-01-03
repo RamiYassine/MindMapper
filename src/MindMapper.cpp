@@ -106,19 +106,12 @@ void MindMapper::formIdea()
     char ch;
 
     std::cout << "Enter title for new Idea: ";
-    // Read one line at a time (Enter ends input)
     while (true) {
         if (!std::cin.get(ch)) break; // stop on EOF or error
         if (ch == '\n') break;        // Enter pressed → end input
         title.append(ch);
     }
-    // do {
-    //     std::cin >> std::noskipws >> ch;
-    //     if (ch != '\n')
-    //         title.append(ch);
-    // } while (ch != '\n');
-    // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
-    
+
     Stack thoughts(title);
     int choice;
 
@@ -139,12 +132,6 @@ void MindMapper::formIdea()
                 if (ch == '\n') break;        // Enter pressed → end input
                 thought.append(ch);
             }
-            // do {
-            //     std::cin >> std::noskipws >> ch;
-            //     if (ch != '\n')
-            //         thought.append(ch);
-            // } while (ch != '\n');
-            // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
             thoughts.push(thought);
             break;
         case 2:
@@ -241,13 +228,7 @@ void MindMapper::editIdea()
                 if (ch == '\n') break;        // Enter pressed → end input
                 thought.append(ch);
             }
-            // do {
-            //     std::cin >> std::noskipws >> ch;
-            //     if (ch != '\n')
-            //         thought.append(ch);
-            // } while (ch != '\n');
             p->thoughts.push(thought);
-            // std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
             break;
         case 2:
             std::cout << "Removed last thought!" << std::endl;
