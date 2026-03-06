@@ -15,16 +15,11 @@ MindMapper::MindMapper() : m_first(nullptr), m_last(nullptr), m_Length(0)
 
 MindMapper::~MindMapper()
 {
-    while (m_first) {
-        Idea* tmp = m_first;
-        m_first = m_first->next;
-        delete tmp;
-    }
     m_first = m_last = nullptr;
 }
 
 // Return pointer to first Idea
-const Idea* MindMapper::getFirst() const
+const std::shared_ptr<IdeaNode> MindMapper::getFirst() const
 {
     return m_first;
 }
@@ -112,7 +107,7 @@ void MindMapper::formIdea()
         title.append(ch);
     }
 
-    Stack thoughts(title);
+    Idea idea(title);
     int choice;
 
     do {
@@ -132,16 +127,16 @@ void MindMapper::formIdea()
                 if (ch == '\n') break;        // Enter pressed → end input
                 thought.append(ch);
             }
-            thoughts.push(thought);
+            idea.push(thought);
             break;
         case 2:
             std::cout << "Removed last thought!" << std::endl;
-            thoughts.pop();
+            idea.pop();
             break;
         case 3:
             std::cout << std::endl;
             std::cout << "Trail of thoughts: " << std::endl;
-            thoughts.display(thoughts.getTop());
+            idea.display(idea.getTop());
             break;
         case 4:
             break;
@@ -150,24 +145,24 @@ void MindMapper::formIdea()
         }
     } while (choice != 4);
 
-    addIdea(thoughts);
+    addIdea(idea);
 }
 
-void MindMapper::addIdea(const Stack& stk)
+void MindMapper::addIdea(const Idea& stk)
 {
-    Idea *tmp = new Idea(stk);
-    if (!tmp) {
-        std::cout << "List is full!" << std::endl;
-        return;
+    try {
+        auto tmp = std::make_shared<IdeaNode>(stk);
+        if (!m_first) {
+            m_first = tmp;
+            m_last = m_first;
+        } else {
+            m_last->next = tmp;
+            m_last = tmp;
+        }
+        m_Length++;
+    } catch (std::bad_alloc& e) {
+        std::cout << e.what() << std::endl;
     }
-    if (!m_first) {
-        m_first = tmp;
-        m_last = m_first;
-    } else {
-        m_last->next = tmp;
-        m_last = tmp;
-    }
-    m_Length++;
 }
 
 void MindMapper::removeIdea()
@@ -178,7 +173,7 @@ void MindMapper::removeIdea()
         return;
     }
 
-    Idea *p = m_first, *q = nullptr;
+    std::shared_ptr<IdeaNode> p = m_first, q = nullptr;
 
     if (m_first) {
         if (ndx == 0) {
@@ -190,7 +185,7 @@ void MindMapper::removeIdea()
             }
             q->next = p->next;
         }
-        delete p;
+        p.reset();
         m_Length--;
     }
 }
@@ -198,7 +193,7 @@ void MindMapper::removeIdea()
 void MindMapper::editIdea()
 {
     int sel = selectIdea();
-    Idea *p = m_first;
+    std::shared_ptr<IdeaNode> p = m_first;
     if (p) {
         if (sel == -1) {
             std::cout << "Wrong # of Idea selected" << std::endl;
@@ -228,16 +223,16 @@ void MindMapper::editIdea()
                 if (ch == '\n') break;        // Enter pressed → end input
                 thought.append(ch);
             }
-            p->thoughts.push(thought);
+            p->idea.push(thought);
             break;
         case 2:
             std::cout << "Removed last thought!" << std::endl;
-            p->thoughts.pop();
+            p->idea.pop();
             break;
         case 3:
             std::cout << std::endl;
             std::cout << "Trail of thoughts: " << std::endl;
-            p->thoughts.display(p->thoughts.getTop());
+            p->idea.display(p->idea.getTop());
             break;
         case 4:
             break;
@@ -262,11 +257,11 @@ int MindMapper::selectIdea()
 
 void MindMapper::traverseIdeas() const
 {
-    Idea *p = m_first;
+    std::shared_ptr<IdeaNode> p = m_first;
     int i = 1;
     while (p) {
-        std::cout << "Idea #" << i++ << ": " << p->thoughts.getTitle().c_str();
-        if (p->thoughts.isDone())
+        std::cout << "Idea #" << i++ << ": " << p->idea.getTitle().c_str();
+        if (p->idea.isDone())
             std::cout << " (Done)";
         std::cout << std::endl;
         p = p->next;
@@ -286,7 +281,7 @@ void MindMapper::markIdeaDone()
         return; 
     }
     int sel = selectIdea();
-    Idea *p = m_first;
+    auto p = m_first;
     if (p) {
         if (sel == -1) {
             std::cout << "Wrong # of Idea selected" << std::endl;
@@ -297,12 +292,12 @@ void MindMapper::markIdeaDone()
         }
     }
 
-    if (choice == 1 && p->thoughts.isDone()) {
+    if (choice == 1 && p->idea.isDone()) {
         std::cout << "Idea already done!" << std::endl;
-    } else if (choice == 1 && !p->thoughts.isDone()) {
-        p->thoughts.setStatus(true);
-    } else if (choice == 2 && p->thoughts.isDone()) {
-        p->thoughts.setStatus(false);
+    } else if (choice == 1 && !p->idea.isDone()) {
+        p->idea.setStatus(true);
+    } else if (choice == 2 && p->idea.isDone()) {
+        p->idea.setStatus(false);
     } else {
         std::cout << "Idea already not done!" << std::endl;
     }
@@ -324,23 +319,24 @@ void MindMapper::loadOrSave()
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
         serialize(session);
     } else if (choice == 2) {
-        // std::string session;
-        // std::cout << "Listing saved sessions:" << std::endl;
-        // try {
-        //     for (const auto& entry : std::filesystem::directory_iterator()) {
-        //         if (std::filesystem::is_regular_file(entry.status())) {
-        //             if (entry.path().extension() == ".bin") {
-        //                 std::cout << entry.path().filename().string() << std::endl;
-        //             }
-        //         }
-        //     }
-        // } catch (const std::filesystem::filesystem_error& e) {
-        //     std::cerr << "Error accessing directory: " << e.what() << std::endl;
-        // }
-        // std::cout << "Please enter the name of the session to load: ";
-        // std::cin >> session;
+        std::string session;
+        std::cout << "Listing saved sessions:" << std::endl;
+        try {
+            for (const auto& entry : std::filesystem::directory_iterator()) {
+                if (std::filesystem::is_regular_file(entry.status())) {
+                    if (entry.path().extension() == ".json") {
+                        std::cout << entry.path().filename().string() << std::endl;
+                    }
+                }
+            }
+        } catch (const std::filesystem::filesystem_error& e) {
+            std::cerr << "Error accessing directory: " << e.what() << std::endl;
+        }
+        std::cout << "Please enter the name of the session to load: ";
+        std::cin >> session;
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // clear input buffer
 
-        // *this = MindMapper::deserialize(session);
+        *this = MindMapper::deserialize(session);
     } else {
         return;
     }
@@ -359,18 +355,29 @@ void MindMapper::serialize(const std::string& filename)
     std::cout << "Saved!" << std::endl;
 }
 
-// MindMapper MindMapper::deserialize(const std::string& filename)
-// {
-    // MindMapper mind;
-    // ifstream file(filename, ios::binary);
-    // if (!file.is_open()) {
-    //     std::cerr << "Error: Failed to open file for reading." << std::endl;
-    //     return;
-    // }
-    // file.close();
-    // std::cout << "Loaded!" << std::endl;
-    // return mind;
-// }
+MindMapper MindMapper::deserialize(const std::string& filename)
+{
+    MindMapper mind;
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Error: Failed to open file for reading." << std::endl;
+        return mind;
+    }
+    try {
+        json j;
+        file >> j;  // read JSON from file
+
+        // Use our from_json(MindMapper&) function
+        from_json(j, mind);
+
+        std::cout << "Loaded MindMapper from " << filename << " successfully!" << std::endl;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Error: Failed to parse JSON: " << e.what() << std::endl;
+    }
+    file.close();
+    return mind;
+}
 
 // void MindMapper::traverseThoughts()
 // {

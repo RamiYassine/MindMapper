@@ -1,8 +1,10 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include <stdlib.h>
 #include <iostream>
+#include <stdlib.h>
+#include <cstring>
+#include <memory>
 
 namespace Mapper {
 
@@ -12,18 +14,29 @@ class Array;
 template <typename T>
 std::ostream& operator<<(std::ostream& o, const Array<T>& rhs);
 
+// class to replace std::vector for this project
 template <typename T>
 class Array final
 {
+private:
+    size_t m_Size; // array size
+    size_t m_Length; // used size
+    std::unique_ptr<T[]> m_Data; // ptr to array data
+
+    void resize(); // function to resize the array
+
 public:
-    Array();
-    Array(size_t sz);
-    Array(size_t sz, T val);
-    Array(const Array& other);
-    Array& operator=(const Array& other);
-    // Array(Array&& other);
-    // Array& operator=(Array&& other);
-    ~Array();
+    Array(); // default constructor
+    Array(size_t sz); // construct with specific size
+    Array(size_t sz, T val); // construct with specific size and set data to val
+    template <typename U = T,
+                typename = std::enable_if_t<std::is_same_v<U, char>>>
+    Array(const char* str); // specialized consturctor
+    Array(const Array& other); // copy constructor
+    Array& operator=(const Array& other); // copy assingment
+    Array(Array&& other) noexcept; // move constructor
+    Array& operator=(Array&& other) noexcept; // move assignment
+    ~Array() = default; // destructor
 
     void append(const T& val);
     void insert(const T& val, size_t ndx);
@@ -35,32 +48,23 @@ public:
 
     size_t getLength() const;
     T* data() const;
-private:
-    size_t m_Size;
-    size_t m_Length;
-    T* m_Data;
-
-    void resize();
 };
 
-// create an empty array of size 10
 template <typename T>
 Array<T>::Array()
-    : m_Size(10), m_Length(0), m_Data(new T[m_Size])
+    : m_Size(10), m_Length(0), m_Data(std::make_unique<T[]>(m_Size))
 {
 }
 
-// create an array of a size equal to the parameter passed
 template <typename T>
 Array<T>::Array(size_t sz)
-    : m_Size(sz), m_Length(0), m_Data(new T[m_Size])
+    : m_Size(sz), m_Length(0), m_Data(std::make_unique<T[]>(m_Size))
 {
 }
 
-// create an array of sz size and initialize all values to val
 template <typename T>
 Array<T>::Array(size_t sz, T val)
-    : m_Size(sz), m_Length(0), m_Data(new T[m_Size])
+    : m_Size(sz), m_Length(0), m_Data(std::make_unique<T[]>(m_Size))
 {
     for (size_t i = 0; i < sz; i++) {
         m_Data[i] = val;
@@ -68,55 +72,61 @@ Array<T>::Array(size_t sz, T val)
     }
 }
 
-// Copy constructor
+template <typename T>
+template <typename U, typename>
+Array<T>::Array(const char* str)
+    : m_Size(std::strlen(str) + 1),
+    m_Length(m_Size),
+    m_Data(std::make_unique<T[]>(m_Size))
+{
+    std::copy(str, str+m_Size, m_Data.get());
+}
+
 template <typename T>
 Array<T>::Array(const Array& other)
     : m_Size(other.getLength()),
     m_Length(other.getLength()),
-    m_Data(new T[other.getLength()])
+    m_Data(std::make_unique<T[]>(other.getLength()))
 {
-    std::copy(other.data(), other.data()+m_Length, m_Data);
+    std::copy(other.data(), other.data() + m_Length, m_Data.get());
 }
 
-// Copy assignment operator
 template <typename T>
 Array<T>& Array<T>::operator=(const Array& other)
 {
     if (this == &other) // check for self-assignment
         return *this;
 
-    if (m_Data)
-        delete [] m_Data;
-
     m_Size = other.m_Size;
     m_Length = other.m_Length;
-    m_Data = new T[m_Size];
-    std::copy(other.data(), other.data()+m_Length, m_Data);
+    m_Data = std::make_unique<T[]>(m_Size);
+    std::copy(other.data(), other.data() + m_Length, m_Data.get());
 
     return *this;
 }
 
-// // Move constructor
-// template <typename T>
-// Array<T>::Array(Array&& other)
-// {
-
-// }
-
-// // move assignment operator
-// template <typename T>
-// Array<T>& Array<T>::operator=(Array&& other)
-// {
-
-// }
+template <typename T>
+Array<T>::Array(Array&& other) noexcept
+    : m_Size(other.m_Size),
+    m_Length(other.m_Length),
+    m_Data(std::move(other.m_Data))
+{
+    other.m_Size = 0;
+    other.m_Length = 0;
+}
 
 template <typename T>
-Array<T>::~Array()
+Array<T>& Array<T>::operator=(Array&& other) noexcept
 {
-    if (m_Data) {
-        delete [] m_Data;
-        m_Data = nullptr;
-    }
+    if (this == &other) return *this;
+    m_Size = other.m_Size;
+    m_Length = other.m_Length;
+    m_Data = std::move(other.m_Data);
+
+    other.m_Size = 0;
+    other.m_Length = 0;
+
+    return *this;
 }
 
 // grow the array when needed by doubling its size
@@ -124,16 +134,13 @@ template <typename T>
 void Array<T>::resize()
 {
     size_t newSize = m_Size * 2;
-    T *tmp = new T[newSize];
-    if (tmp) {
-        for (size_t i = 0; i < m_Length; i++)
-            tmp[i] = m_Data[i];
-        delete[] m_Data;
-        m_Data = tmp;
-        m_Size = newSize;
-    } else {
-        throw std::bad_alloc();
-    }
+    auto newData = std::make_unique<T[]>(newSize);
+
+    for (size_t i = 0; i < m_Length; i++)
+        newData[i] = std::move(m_Data[i]);
+
+    m_Data = std::move(newData);
+    m_Size = newSize;
 }
 
 // append new value to end of array
@@ -205,7 +212,7 @@ size_t Array<T>::getLength() const
 template <typename T>
 T* Array<T>::data() const
 {
-    return m_Data;
+    return m_Data.get();
 }
 
 } // namespace Mapper
