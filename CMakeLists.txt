@@ -3,11 +3,11 @@ project(thought-mapper)
 
 file(GLOB_RECURSE sources include/* src/* main.cpp)
 
-add_executable(tmApp ${sources})
+add_executable(mindmapper ${sources})
 
-target_compile_options(tmApp PUBLIC -std=c++17 -Wall -Wfloat-conversion -g)
+target_compile_options(mindmapper PUBLIC -std=c++17 -Wall -Wfloat-conversion -g)
 
-install(TARGETS tmApp DESTINATION ./build/)
+install(TARGETS mindmapper DESTINATION ./build/)
 
 set(CPACK_PACKAGE_NAME "thought-mapper")
 set(CPACK_PACKAGE_VERSION "1.0.0")

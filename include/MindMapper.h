@@ -1,40 +1,41 @@
-#ifndef MIND_H
-#define MIND_H
+#ifndef MIND_MAPPER_H
+#define MIND_MAPPER_H
 
-#include "Stack.h"
+#include "Idea.h"
 
-namespace Mapper
-{
-class Idea final
+namespace Mapper {
+
+class IdeaNode final
 {
 public:
-    Stack thoughts;
-    Idea *next;
+    Idea idea;
+    std::shared_ptr<IdeaNode> next;
 
-    Idea(const Stack& stk) {
-        thoughts = stk;
-        next = nullptr;
+    IdeaNode(const Idea& id) : idea(id), next(nullptr) {}
+
+    IdeaNode(const IdeaNode& other) : idea(other.idea), next(other.next) {}
+
+    IdeaNode& operator=(const IdeaNode& other) {
+        if (this == &other)
+            return *this;
+        idea = other.idea;
+        next = other.next;
+        return *this;
     }
+
+    ~IdeaNode() = default;
 };
 
 class MindMapper final
 {
-public:
-    MindMapper();
-    ~MindMapper();
-
-    void run();
-    void traverseIdeas();
-    // void traverseThoughts();
 private:
-    Idea *m_first;
-    Idea *m_last;
+    std::shared_ptr<IdeaNode> m_first;
+    std::shared_ptr<IdeaNode> m_last;
     int m_Length;
     
-    void mainMenu();
-    void thinkMenu();
+    void mainMenu() const;
+    void thinkMenu() const;
     void formIdea();
-    void addIdea(const Stack &t);
     void removeIdea();
     void editIdea();
     void markIdeaDone();
@@ -42,7 +43,18 @@ private:
     void loadOrSave();
     void serialize(const std::string& filename);
     static MindMapper deserialize(const std::string& filename);
+
+public:
+    MindMapper();
+    ~MindMapper();
+
+    void run();
+    void traverseIdeas() const;
+    const std::shared_ptr<IdeaNode> getFirst() const;
+    int getIdeaCount() const;
+    void addIdea(const Idea& stk);
+    // void traverseThoughts();
 };
 } // namespace Mapper
 
-#endif // MIND_H
+#endif // MIND_MAPPER_H

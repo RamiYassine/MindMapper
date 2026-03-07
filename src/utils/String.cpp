@@ -1,39 +1,48 @@
 #include "../../include/utils/String.h"
 
-namespace Mapper
+namespace Mapper {
+
+String::String() : m_String(std::make_unique<Array<char>>())
 {
-String::String()
-{
-    m_String = new Array<char>();
     m_String->append('\0');
 }
 
-String::String(size_t sz, char ch)
+String::String(size_t sz, char ch) : m_String(std::make_unique<Array<char>>(sz, ch))
 {
-    m_String = new Array<char>(sz, ch);
     m_String->append('\0');
 }
 
-String::String(Array<char>& str) : m_String(&str)
+String::String(const Array<char>& arr) : m_String(std::make_unique<Array<char>>(arr))
 {
-    if (m_String->get(m_String->getLength() - 1) != '\0')
-        m_String->append('\0');
+    try {
+        if (m_String->get(m_String->getLength() - 1) != '\0')
+            m_String->append('\0');
+    } catch (std::out_of_range& e) {
+        std::cout << e.what() << std::endl;
+    }
 }
 
-String::String(const String& other) : m_String(new Array<char>(*(other.getString())))
+String::String(const char* str) : m_String(std::make_unique<Array<char>>(str))
+{
+    try {
+        if (m_String->get(m_String->getLength() - 1) != '\0')
+            m_String->append('\0');
+    } catch (std::out_of_range& e) {
+        std::cout << e.what() << std::endl;
+    }
+}
+
+String::String(const String& other) : m_String(std::make_unique<Array<char>>(*(other.getString())))
 {
 }
 
 String& String::operator=(const String& other)
 {
-    delete m_String;
-    m_String = new Array<char>(*(other.getString()));
-    return *this;
-}
+    if (this == &other)
+        return *this;
 
-String::~String()
-{
-    delete m_String;
+    m_String = std::make_unique<Array<char>>(*(other.getString()));
+    return *this;
 }
 
 void String::append(char ch)
@@ -53,7 +62,7 @@ size_t String::getLength() const
 
 Array<char>* String::getString() const
 {
-    return m_String;
+    return m_String.get();
 }
 
 } // namespace Mapper
